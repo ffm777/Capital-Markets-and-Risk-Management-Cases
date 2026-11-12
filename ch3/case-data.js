@@ -60,8 +60,8 @@ window.CASE = {
             { v: "NjYuNjc=", h: "Two things to check: use variances instead of volatilities, and make sure the less volatile stock gets the larger share." },
             { v: "NTA=", h: "Task 1 showed that 50/50 has 22.36% volatility, which is more than Brunnen alone. The minimum lies elsewhere." },
             { v: "MA==", h: "That is Elena’s claim. Test it: what happens to the variance if you add a little uncorrelated Voltaq?" }],
-          hints: ["Var(x) = x²·σ_V² + (1−x)²·σ_B². Differentiate with respect to x and set the result to zero.",
-            "Solving the first-order condition gives x = σ_B² / (σ_V² + σ_B²)."] },
+          hints: ["Var(x) = x²·σ<sub>V</sub>² + (1−x)²·σ<sub>B</sub>². Differentiate with respect to x and set the result to zero.",
+            "Solving the first-order condition gives x = σ<sub>B</sub>² / (σ<sub>V</sub>² + σ<sub>B</sub>²)."] },
         { key: "emvp", label: "Expected return of this portfolio", plain: "Expected return", unit: "%", kind: "pct", ans: "OC42", tol: 0.05,
           mis: [{ v: "MTMuNA==", h: "You used the weights the wrong way round." }, { v: "MTE=", h: "That is the 50/50 portfolio. Use the minimum variance weights." }],
           hints: ["Weighted average of the two expected returns, using the minimum variance weights."] },
@@ -70,7 +70,7 @@ window.CASE = {
             { v: "My4y", h: "3.2% is the variance. Take the square root." },
             { v: "MjQ=", h: "That is the weighted average of the volatilities. Use the variance formula." },
             { v: "MzIuMjU=", h: "You used the weights the wrong way round." }],
-          hints: ["Same formula as in task 1, now with the minimum variance weights.", "Var = x_V²·0.40² + x_B²·0.20², then take the square root."] }
+          hints: ["Same formula as in task 1, now with the minimum variance weights.", "Variance = (weight of Voltaq)²·0.40² + (weight of Brunnen)²·0.20², then take the square root."] }
       ],
       approach: `<p><span class="f">Var(x) = x²·σ<sub>V</sub>² + (1−x)²·σ<sub>B</sub>²</span> (correlation is zero)</p>
         <p>First derivative: <span class="f">2x·σ<sub>V</sub>² − 2(1−x)·σ<sub>B</sub>² = 0</span>, so <span class="f">x = σ<sub>B</sub>² / (σ<sub>V</sub>² + σ<sub>B</sub>²)</span>.</p>

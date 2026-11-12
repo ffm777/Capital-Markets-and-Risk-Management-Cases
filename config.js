@@ -3,5 +3,5 @@
 // "https://cmrm-cases-default-rtdb.europe-west1.firebasedatabase.app"
 // Leave it empty to run the case studies without any tracking.
 window.CASE_CONFIG = {
-  firebaseUrl: ""
+  firebaseUrl: "https://cmrm-cases-default-rtdb.europe-west1.firebasedatabase.app"
 };

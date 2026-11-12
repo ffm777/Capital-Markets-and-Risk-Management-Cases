@@ -5,7 +5,7 @@
   var px = function (sd) { return m.l + sd / XM * (W - m.l - m.r); };
   var py = function (mu) { return H - m.b - mu / YM * (H - m.t - m.b); };
   var mix = function (x) { return { mu: x * 15 + (1 - x) * 7, sd: Math.sqrt(x * x * 1600 + (1 - x) * (1 - x) * 400) }; };
-  var C = { ink: "#10292E", grid: "#DDE4E2", amber: "#C98A12", teal: "#1F7F78", berry: "#B3305F", muted: "#56696D", line: "#3B6E8F", green: "#22734A" };
+  var C = { ink: "#2B2533", grid: "#E6E3EE", amber: "#362047", teal: "#362047", berry: "#9C3A68", muted: "#6E6878", line: "#5B4C9E", green: "#3F7A5E" };
   var w = 50, built = false;
 
   function path(a, b, n) { var d = "", i, p; for (i = 0; i <= n; i++) { p = mix(a + (b - a) * i / n); d += (i ? "L" : "M") + px(p.sd).toFixed(1) + " " + py(p.mu).toFixed(1); } return d; }
