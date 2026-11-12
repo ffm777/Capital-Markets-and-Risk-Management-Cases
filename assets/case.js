@@ -31,8 +31,9 @@
   /* ---------- checking ---------- */
   function parseNum(str, big) {
     var s = String(str == null ? "" : str).trim().replace(/[%€$\s'’]/g, "");
+    s = s.replace(/^[−–]/, "-");
     if (!s) return NaN;
-    if (big && /^\d{1,3}([.,]\d{3})+$/.test(s)) s = s.replace(/[.,]/g, "");
+    if (big && /^-?\d{1,3}([.,]\d{3})+$/.test(s)) s = s.replace(/[.,]/g, "");
     else s = s.replace(",", ".");
     return /^-?\d*\.?\d+$/.test(s) ? parseFloat(s) : NaN;
   }
@@ -53,8 +54,8 @@
   }
   function fmt(f) {
     var a = dec(f.ans);
-    var s = f.big ? a.toLocaleString("en-US") : String(a);
-    return (f.pre || "") + s + (f.unit ? (f.unit === "%" ? "%" : " " + f.unit) : "");
+    var s = f.big ? Math.abs(a).toLocaleString("en-US") : String(a);
+    return (f.big && a < 0 ? "−" : "") + (f.pre || "") + s + (f.unit ? (f.unit === "%" ? "%" : " " + f.unit) : "");
   }
 
   /* ---------- rendering ---------- */

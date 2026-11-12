@@ -8,6 +8,7 @@ Interaktive Fallstudien für die Vorlesung. Reine statische Webseite: kein Login
 |---|---|
 | `index.html` | Startseite mit Liste der Fallstudien |
 | `ch3/` | Fallstudie Kapitel 3 "A million for Elena" (Daten, Diagramm) |
+| `ch4/` | Fallstudie Kapitel 4 "The battery bet" (Daten, Deal Sheet) |
 | `assets/` | Gemeinsame Logik und Gestaltung für alle Fallstudien |
 | `dashboard.html` | Dozentenansicht: gestartete Teams und gelöste Teilaufgaben |
 | `config.js` | Adresse der Datenbank für die Live-Übersicht |
@@ -39,7 +40,7 @@ Die Regeln erlauben jedem das Lesen dieser Zählwerte und das einmalige Schreibe
 
 ## In der Vorlesung
 
-- Studenten öffnen `.../ch3/`. Die Sitzung ist automatisch das Tagesdatum.
+- Studenten öffnen `.../ch3/` bzw. `.../ch4/`. Die Sitzung ist automatisch das Tagesdatum.
 - Für zwei Gruppen am selben Tag einen Code anhängen: `.../ch3/?run=gruppeA`
   und in der Dozentenansicht denselben Code eintragen.
 - Nach drei Fehlversuchen erscheint "Show the approach", nach sechs "Show the solution".
