@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Case study progress</title>
+<link rel="stylesheet" href="assets/case.css">
+<style>
+.dash{max-width:900px;margin:0 auto;padding:28px 20px 60px}
+.dash h1{font-size:30px;font-weight:800}
+.ctl{display:flex;flex-wrap:wrap;gap:14px;align-items:end;margin:16px 0 8px}
+.ctl label{display:block;font-size:13px;font-weight:700;color:var(--muted)}
+.ctl select,.ctl input{font:inherit;padding:7px 9px;border:2px solid var(--line);border-radius:6px;background:#fff}
+.link{font-size:14px;word-break:break-all;margin:4px 0 18px}
+.big{display:flex;gap:40px;margin:10px 0 22px}
+.big div b{display:block;font-size:64px;line-height:1;font-weight:800}
+.big div span{color:var(--muted)}
+.bar{display:grid;grid-template-columns:minmax(150px,260px) 1fr 86px;gap:12px;align-items:center;margin:9px 0}
+.bar .t{font-weight:700;font-size:15px}
+.bar .rail{height:26px;background:#fff;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.bar .fill{height:100%;background:var(--teal);transition:width .4s}
+.bar .n{text-align:right;font-weight:700}
+.note{background:#fff;border:1px solid var(--line);border-radius:10px;padding:14px 18px;margin-top:18px}
+.stamp{font-size:13px;color:var(--muted);margin-top:18px}
+</style>
+</head>
+<body>
+<main class="dash">
+  <h1>Case study progress</h1>
+  <div class="ctl">
+    <div><label for="case">Case</label><select id="case"><option value="ch3">Chapter 3: A million for Elena</option></select></div>
+    <div><label for="run">Session (date or code)</label><input id="run" size="12"></div>
+  </div>
+  <p class="link">Link for students: <a id="link" href="#"></a></p>
+  <div id="out"></div>
+  <p class="stamp" id="stamp"></p>
+</main>
+<script src="config.js"></script>
+<script>
+(function(){
+  var cfg=window.CASE_CONFIG||{}, $=function(i){return document.getElementById(i);};
+  var d=new Date(), p=function(n){return (n<10?"0":"")+n;};
+  var q=new URLSearchParams(location.search);
+  $("run").value=q.get("run")||d.getFullYear()+"-"+p(d.getMonth()+1)+"-"+p(d.getDate());
+  if(q.get("case")) $("case").value=q.get("case");
+  var titles={}, timer=null;
+
+  function loadTitles(id,cb){
+    if(titles[id]) return cb();
+    var s=document.createElement("script"); s.src=id+"/case-data.js";
+    s.onload=function(){ titles[id]=window.CASE.tasks.map(function(t){return t.title;}); cb(); };
+    s.onerror=function(){ titles[id]=[]; cb(); };
+    document.head.appendChild(s);
+  }
+  function link(){
+    var base=location.href.replace(/dashboard\.html.*$/,""), today=d.getFullYear()+"-"+p(d.getMonth()+1)+"-"+p(d.getDate());
+    var u=base+$("case").value+"/"+($("run").value===today?"":"?run="+encodeURIComponent($("run").value));
+    $("link").href=u; $("link").textContent=u;
+  }
+  function draw(data){
+    var id=$("case").value, T=titles[id]||[], n=T.length, sessions=Object.keys(data||{});
+    var started=sessions.length, c=[], i;
+    for(i=1;i<=n;i++) c.push(sessions.filter(function(s){return data[s]["s"+i]!=null;}).length);
+    var h='<div class="big"><div><b>'+started+'</b><span>teams started</span></div><div><b>'+(c[n-1]||0)+'</b><span>teams finished</span></div></div>';
+    T.forEach(function(t,k){
+      var pct=started?Math.round(c[k]/started*100):0;
+      h+='<div class="bar"><div class="t">'+(k+1)+'. '+t+'</div><div class="rail"><div class="fill" style="width:'+pct+'%"></div></div><div class="n">'+c[k]+' ('+pct+'%)</div></div>';
+    });
+    if(!started) h+='<p class="note">No team has started in this session yet. Students must open the link above, with the same session code.</p>';
+    $("out").innerHTML=h;
+  }
+  function tick(){
+    if(!cfg.firebaseUrl){
+      $("out").innerHTML='<p class="note"><strong>Live overview is not set up yet.</strong> Enter the URL of your Firebase Realtime Database in <code>config.js</code>. The README explains the steps. The case studies work without it, but nothing is counted.</p>';
+      return;
+    }
+    var run=$("run").value.replace(/[^A-Za-z0-9_-]/g,"").slice(0,20)||"default";
+    fetch(cfg.firebaseUrl.replace(/\/+$/,"")+"/progress/"+$("case").value+"/"+run+".json",{cache:"no-store"})
+      .then(function(r){ if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); })
+      .then(function(data){ draw(data); $("stamp").textContent="Updated "+new Date().toLocaleTimeString()+". Refreshes every 5 seconds."; })
+      .catch(function(e){ $("stamp").textContent="Could not read the database ("+e.message+"). Check the URL in config.js and the database rules."; });
+  }
+  function start(){ link(); clearInterval(timer); loadTitles($("case").value,function(){ tick(); timer=setInterval(tick,5000); }); }
+  $("case").onchange=start; $("run").onchange=start; start();
+})();
+</script>
+</body>
+</html>

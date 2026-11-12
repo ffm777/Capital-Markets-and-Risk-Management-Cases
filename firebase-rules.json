@@ -1,0 +1,17 @@
+{
+  "rules": {
+    "progress": {
+      "$case": {
+        "$run": {
+          ".read": true,
+          "$session": {
+            "$step": {
+              ".write": "!data.exists()",
+              ".validate": "newData.isNumber() && $case.length <= 12 && $run.length <= 20 && $session.length <= 40 && $step.matches(/^s[0-9]$/)"
+            }
+          }
+        }
+      }
+    }
+  }
+}
