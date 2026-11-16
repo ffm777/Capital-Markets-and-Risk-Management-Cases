@@ -30,7 +30,6 @@
     if (stage >= 2) s += '<path d="' + path(0, 0.2, 20) + '" fill="none" stroke="' + C.muted + '" stroke-width="2" stroke-dasharray="4 5"/>' +
       '<path d="' + path(0.2, 1, 60) + '" fill="none" stroke="' + C.green + '" stroke-width="3.5"/>' +
       '<text x="' + px(29) + '" y="' + py(10.3) + '" font-size="12.5" font-weight="700" fill="' + C.green + '">Efficient frontier</text>';
-    else if (stage >= 1) s += '<path d="' + path(0, 1, 80) + '" fill="none" stroke="' + C.muted + '" stroke-width="2"/>';
     s += dot(40, 15, C.amber, "Voltaq", -18, -12) + dot(20, 7, C.teal, "Brunnen", 10, 16);
     if (stage >= 1) s += dot(mix(.5).sd, 11, C.ink, "50/50", 10, 14, 5);
     if (stage >= 2) s += dot(mix(.2).sd, 8.6, C.ink, "MVP", -42, 5, 5);
