@@ -51,7 +51,7 @@ window.CASE = {
       id: "t2", title: "Is Brunnen the safe choice?",
       mail: { from: "Elena, 9:10", text: "Hm, 22% is still a lot. Brunnen alone has only 20%. So if I want as little risk as possible, I simply buy Brunnen and nothing else, right?" },
       body: `<p>Check her claim. Find the minimum variance portfolio of Voltaq and Brunnen: the mix with the lowest possible volatility.</p>
-        <p>As in exercises 3.2 and 3.3: write the portfolio variance as a function of the Voltaq weight <span class="f">x</span>, set the first derivative to zero and solve for <span class="f">x</span>.</p>`,
+        <p>As in exercises 3.2 and 3.3: write the portfolio variance with the weights <span class="f">x</span> for Voltaq and <span class="f">(1 − x)</span> for Brunnen, insert the volatilities and the correlation, and multiply out. Then set the first derivative to zero and solve for <span class="f">x</span>.</p>`,
       fields: [
         { key: "wmvp", label: "Weight of Voltaq in the minimum variance portfolio", plain: "Weight of Voltaq", unit: "%", kind: "pct", ans: "MjA=", tol: 0.1,
           mis: [
@@ -60,8 +60,8 @@ window.CASE = {
             { v: "NjYuNjc=", h: "Two things to check: use variances instead of volatilities, and make sure the less volatile stock gets the larger share." },
             { v: "NTA=", h: "Task 1 showed that 50/50 has 22.36% volatility, which is more than Brunnen alone. The minimum lies elsewhere." },
             { v: "MA==", h: "That is Elena’s claim. Test it: what happens to the variance if you add a little uncorrelated Voltaq?" }],
-          hints: ["Var(x) = x²·σ<sub>V</sub>² + (1−x)²·σ<sub>B</sub>². Differentiate with respect to x and set the result to zero.",
-            "Solving the first-order condition gives x = σ<sub>B</sub>² / (σ<sub>V</sub>² + σ<sub>B</sub>²)."] },
+          hints: ["Insert the numbers into the variance formula with the weights x and (1 − x) and multiply out. You get a quadratic function of x.",
+            "Differentiate the simplified function with respect to x, set the derivative to zero and solve for x."] },
         { key: "emvp", label: "Expected return of this portfolio", plain: "Expected return", unit: "%", kind: "pct", ans: "OC42", tol: 0.05,
           mis: [{ v: "MTMuNA==", h: "You used the weights the wrong way round." }, { v: "MTE=", h: "That is the 50/50 portfolio. Use the minimum variance weights." }],
           hints: ["Weighted average of the two expected returns, using the minimum variance weights."] },
@@ -72,8 +72,9 @@ window.CASE = {
             { v: "MzIuMjU=", h: "You used the weights the wrong way round." }],
           hints: ["Same formula as in task 1, now with the minimum variance weights.", "Variance = (weight of Voltaq)²·0.40² + (weight of Brunnen)²·0.20², then take the square root."] }
       ],
-      approach: `<p><span class="f">Var(x) = x²·σ<sub>V</sub>² + (1−x)²·σ<sub>B</sub>²</span> (correlation is zero)</p>
-        <p>First derivative: <span class="f">2x·σ<sub>V</sub>² − 2(1−x)·σ<sub>B</sub>² = 0</span>, so <span class="f">x = σ<sub>B</sub>² / (σ<sub>V</sub>² + σ<sub>B</sub>²)</span>.</p>
+      approach: `<p><span class="f">Var(x) = x²·0.40² + (1 − x)²·0.20²</span> (the covariance term is zero because the correlation is zero)</p>
+        <p>Multiply out: <span class="f">Var(x) = 0.16·x² + 0.04·(1 − 2x + x²)</span>, which simplifies to a function of the form <span class="f">a·x² − b·x + c</span>.</p>
+        <p>Set the first derivative to zero: <span class="f">2a·x − b = 0</span>, and solve for <span class="f">x</span>.</p>
         <p>Then use this weight in the formulas from task 1.</p>`,
       successTitle: "Elena is wrong",
       success: `<p>Adding 20% of the much riskier Voltaq makes the portfolio <em>less</em> risky than Brunnen alone (17.89% instead of 20%), and it earns more. The map now shows the minimum variance portfolio (MVP) and the efficient frontier above it.</p>`
