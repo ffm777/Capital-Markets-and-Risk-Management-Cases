@@ -36,7 +36,7 @@
     if (stage >= 3) s += dot(20, 10.2, C.ink, "P", -20, -9, 5);
     if (stage >= 4) s += dot(0, 3, C.line, "Bund", 9, 16, 5);
     if (stage >= 5) s += dot(10, 6.6, C.line, "K", 8, 16, 5);
-    if (stage >= 6) s += dot(16, 11, C.berry, "Market", -56, -8);
+    if (stage >= 7) s += dot(16, 11, C.berry, "Market", -56, -8);
     if (stage >= 7) s += dot(10, 8, C.berry, "L", -16, -8, 5);
     if (slider) s += '<circle id="me" r="8" fill="none" stroke="' + C.berry + '" stroke-width="3"/>';
     return s + '</svg>';
