@@ -43,7 +43,11 @@
     return h + '</table>';
   }
   function market() {
-    return '<table class="file"><caption>Market data</caption>' +
+    return '<table class="file"><caption>The plant</caption>' +
+      '<tr><td>Purchase price</td><td>€900 million</td></tr><tr><td>Revenues per year</td><td>€500 million</td></tr>' +
+      '<tr><td>Operating costs</td><td>80% of revenues</td></tr><tr><td>Growth</td><td>none (perpetuity)</td></tr>' +
+      '<tr><td>Free cash flow</td><td>= NOPAT</td></tr></table>' +
+      '<table class="file"><caption>Market data</caption>' +
       '<tr><td>Risk-free rate</td><td>3%</td></tr><tr><td>Market risk premium</td><td>5%</td></tr><tr><td>Corporate tax rate</td><td>30%</td></tr></table>' +
       '<table class="file"><caption>Credit spreads over the risk-free rate</caption><tr><th>Rating</th><th>Spread in basis points</th></tr>' +
       '<tr><td>AA</td><td>55</td></tr><tr><td>A</td><td>85</td></tr><tr><td>BBB</td><td>115</td></tr><tr><td>BB</td><td>190</td></tr><tr><td>B</td><td>320</td></tr></table>';

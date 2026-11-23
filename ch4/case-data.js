@@ -46,7 +46,7 @@ window.CASE = {
     {
       id: "t2", title: "A bargain at five percent?",
       mail: { from: "Markus Brunner, CEO, 8:36", text: "Told you. Now discount the plant’s cash flows at our cost of capital and tell me how much value we create." },
-      body: `<p>Do what he asks, for now. Calculate the plant’s free cash flow per year, its value as a perpetuity at Brunnen’s WACC from task 1, and the NPV of buying it for €900 million.</p>`,
+      body: `<p>Do what he asks, for now. The plant costs €900 million and is expected to generate revenues of €500 million per year. Operating costs are 80% of revenues and the tax rate is 30%. There is no growth, and free cash flow equals NOPAT.</p><p>Calculate the plant’s free cash flow per year, its value as a perpetuity at Brunnen’s WACC from task 1, and the NPV of buying it for €900 million.</p>`,
       fields: [
         { key: "fcf", label: "Free cash flow per year", plain: "Free cash flow per year", pre: "€", unit: "million", big: true, ans: "NzA=", tol: 0.5,
           mis: [{ v: "MTAw", h: "That is the profit before tax. Free cash flow here equals NOPAT, so deduct the tax." }, { v: "MzUw", h: "Deduct the operating costs before you deduct the tax." }, { v: "MzA=", h: "That is the tax payment. The free cash flow is what remains after tax." }, { v: "NTAw", h: "That is revenue. Deduct operating costs and tax." }],
