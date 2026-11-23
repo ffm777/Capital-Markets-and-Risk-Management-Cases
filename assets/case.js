@@ -7,11 +7,16 @@
   var $ = function (id) { return document.getElementById(id); };
   var esc = function (s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); };
 
-  /* ---------- session ---------- */
+  /* ---------- session ----------
+     The lecturer opens and closes sessions on the dashboard (database node /control/<case>).
+     Open session: progress is counted under its code and survives across lectures.
+     Closed session: the case still works, but nothing is counted.
+     No session ever opened: progress is counted under today's date (old behaviour).
+     A ?run=CODE parameter overrides all of this. */
   var q = new URLSearchParams(location.search);
   var today = new Date(), pad = function (n) { return (n < 10 ? "0" : "") + n; };
-  var run = (q.get("run") || today.getFullYear() + "-" + pad(today.getMonth() + 1) + "-" + pad(today.getDate()))
-    .replace(/[^A-Za-z0-9_-]/g, "").slice(0, 20) || "default";
+  var clean = function (r) { return String(r || "").replace(/[^A-Za-z0-9_-]/g, "").slice(0, 20); };
+  var run = null, tracking = false;
   var mem = null;
   function load() { try { return JSON.parse(localStorage.getItem(KEY)); } catch (e) { return mem; } }
   function save() { mem = S; try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { } }
@@ -19,13 +24,33 @@
     var id = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : "x" + Date.now() + Math.random().toString(36).slice(2, 10);
     return { sid: id, run: run, stage: -1, att: {}, vals: {}, pred: {}, mc: {}, open: {}, t0: 0, t1: 0 };
   }
-  var S = load();
-  if (!S || S.run !== run || q.get("reset")) { S = fresh(); save(); }
+  var S = null;
 
   function track(step) {
-    if (!cfg.firebaseUrl) return;
+    if (!cfg.firebaseUrl || !tracking) return;
+    S.sent = S.sent || {}; S.sent[step] = 1; save();
     var url = cfg.firebaseUrl.replace(/\/+$/, "") + "/progress/" + D.id + "/" + run + "/" + S.sid + "/s" + step + ".json";
     try { fetch(url, { method: "PUT", body: JSON.stringify({ ".sv": "timestamp" }), keepalive: true }).catch(function () { }); } catch (e) { }
+  }
+  function getControl(cb) {
+    if (q.get("run") || !cfg.firebaseUrl) return cb(null);
+    var base = cfg.firebaseUrl.replace(/\/+$/, "") + "/control/" + D.id + "/", done = false;
+    var finish = function (c) { if (!done) { done = true; cb(c); } };
+    setTimeout(function () { finish(null); }, 3000);
+    Promise.all(["run", "open"].map(function (k) {
+      return fetch(base + k + ".json", { cache: "no-store" }).then(function (r) { return r.ok ? r.json() : null; });
+    })).then(function (v) { finish(v[0] ? { run: v[0], open: v[1] === true } : null); }).catch(function () { finish(null); });
+  }
+  function startSession(c) {
+    var stored = load();
+    if (q.get("run")) { run = clean(q.get("run")) || "default"; tracking = true; }
+    else if (c && c.open) { run = clean(c.run); tracking = true; }
+    else if (c) { run = (stored && stored.run) || "closed"; tracking = false; }
+    else { run = today.getFullYear() + "-" + pad(today.getMonth() + 1) + "-" + pad(today.getDate()); tracking = true; }
+    S = stored;
+    if (!S || (tracking && S.run !== run) || q.get("reset")) { S = fresh(); save(); }
+    // steps solved while the session was closed are reported once it is open again
+    if (tracking && S.stage >= 0) for (var k = 0; k <= Math.min(S.stage, N); k++) if (!(S.sent || {})[k]) track(k);
   }
 
   /* ---------- checking ---------- */
@@ -117,7 +142,7 @@
     $("clock").textContent = S.t0 ? minutes() + " min" : "";
     if (S.stage < 0) {
       h = '<section class="intro">' + D.intro + '<div class="actions"><button class="btn" id="start">Start the case</button></div>' +
-        '<p class="foot">No login, no grades. The page stores only an anonymous random ID and which tasks are solved, so your lecturer can see how far the class is.</p></section>';
+        '<p class="foot">No login, no grades. The page stores only an anonymous random ID and which tasks are solved, so your lecturer can see how far the class is.' + (tracking ? '' : ' There is no open class session right now, so your progress is not counted.') + '</p></section>';
     } else {
       for (i = 0; i < Math.min(cur, N); i++) h += solvedHtml(D.tasks[i], i);
       if (cur < N) h += taskHtml(D.tasks[cur], cur);
@@ -185,7 +210,10 @@
 
   document.title = D.title;
   $("name").textContent = D.short;
-  if (S.stage >= 0) view = Math.min(S.stage, N);
-  render();
-  setInterval(function () { if (S.t0 && !S.t1) $("clock").textContent = minutes() + " min"; }, 15000);
+  getControl(function (c) {
+    startSession(c);
+    if (S.stage >= 0) view = Math.min(S.stage, N);
+    render();
+    setInterval(function () { if (S.t0 && !S.t1) $("clock").textContent = minutes() + " min"; }, 15000);
+  });
 })();

@@ -9,15 +9,24 @@
 <style>
 .dash{max-width:1240px;margin:0 auto;padding:28px 20px 60px}
 .dash h1{font-size:30px;font-weight:800}
-.ctl{display:flex;flex-wrap:wrap;gap:14px;align-items:end;margin:14px 0 18px}
-.ctl label{display:block;font-size:13px;font-weight:700;color:var(--muted)}
-.ctl input{font:inherit;padding:7px 9px;border:2px solid var(--line);border-radius:6px;background:#fff}
-.ctl .stamp{font-size:13px;color:var(--muted);margin:0 0 8px}
+.top-row{display:flex;flex-wrap:wrap;gap:16px;align-items:end;justify-content:space-between;margin:12px 0 18px}
+.keybox label,.ctl label{display:block;font-size:13px;font-weight:700;color:var(--muted)}
+.keybox input,.ctl input,.ctl select{font:inherit;font-size:15px;padding:6px 9px;border:2px solid var(--line);border-radius:6px;background:#fff}
+.stamp{font-size:13px;color:var(--muted);margin:0}
 .grid{display:grid;gap:18px}
 @media(min-width:900px){.grid{grid-template-columns:1fr 1fr}}
 .card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:18px 20px}
 .card h2{font-size:21px;font-weight:800}
 .card .chap{font-size:13px;font-weight:700;color:var(--muted)}
+.status{margin:10px 0 4px;padding:9px 12px;border-radius:8px;font-size:15px}
+.status.open{background:var(--okbg)}
+.status.closed{background:var(--badbg)}
+.status.none{background:var(--tint)}
+.ctl{display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin:8px 0 4px}
+.ctl .btn{padding:8px 14px;font-size:14px}
+.msg{font-size:13px;margin:4px 0 0;min-height:1em}
+.msg.err{color:var(--bad)}
+.view{display:flex;gap:8px;align-items:center;margin:14px 0 2px;font-size:14px;color:var(--muted)}
 .link{font-size:13px;word-break:break-all;margin:4px 0 10px;color:var(--muted)}
 .big{display:flex;gap:36px;margin:8px 0 14px}
 .big div b{display:block;font-size:54px;line-height:1;font-weight:800;color:var(--dark)}
@@ -34,8 +43,8 @@
 <body>
 <main class="dash">
   <h1>Case study progress</h1>
-  <div class="ctl">
-    <div><label for="run">Session (date or code)</label><input id="run" size="12"></div>
+  <div class="top-row">
+    <div class="keybox"><label for="key">Instructor key (needed to open and close sessions)</label><input id="key" type="password" size="22" autocomplete="off"></div>
     <p class="stamp" id="stamp"></p>
   </div>
   <div id="out" class="grid"></div>
@@ -45,10 +54,15 @@
 (function(){
   var CASES=[{id:"ch3",chap:"Chapter 3"},{id:"ch4",chap:"Chapter 4"}];
   var cfg=window.CASE_CONFIG||{}, $=function(i){return document.getElementById(i);};
-  var d=new Date(), p=function(n){return (n<10?"0":"")+n;}, today=d.getFullYear()+"-"+p(d.getMonth()+1)+"-"+p(d.getDate());
-  var q=new URLSearchParams(location.search), timer=null;
-  $("run").value=q.get("run")||today;
-  function runCode(){ return $("run").value.replace(/[^A-Za-z0-9_-]/g,"").slice(0,20)||"default"; }
+  var BASE=(cfg.firebaseUrl||"").replace(/\/+$/,"");
+  var p=function(n){return (n<10?"0":"")+n;};
+  function today(){var d=new Date();return d.getFullYear()+"-"+p(d.getMonth()+1)+"-"+p(d.getDate());}
+  function clean(r){return String(r||"").replace(/[^A-Za-z0-9_-]/g,"").slice(0,20);}
+  function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
+  var store={get:function(k){try{return localStorage.getItem(k)||"";}catch(e){return "";}},set:function(k,v){try{localStorage.setItem(k,v);}catch(e){}}};
+  $("key").value=store.get("cmrm-instructor-key");
+  $("key").oninput=function(){store.set("cmrm-instructor-key",$("key").value);};
+  var timer=null;
 
   function loadCases(i,cb){
     if(i>=CASES.length) return cb();
@@ -57,37 +71,81 @@
     s.onerror=function(){ CASES[i].title=CASES[i].id; CASES[i].tasks=[]; loadCases(i+1,cb); };
     document.head.appendChild(s);
   }
-  function card(c,data){
-    var base=location.href.replace(/dashboard\.html.*$/,""), run=runCode();
-    var u=base+c.id+"/"+(run===today?"":"?run="+encodeURIComponent(run));
+  function getJSON(path){ return fetch(BASE+path+".json",{cache:"no-store"}).then(function(r){ if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); }); }
+  function getControl(c){
+    return Promise.all(["run","open","since"].map(function(k){ return getJSON("/control/"+c.id+"/"+k).catch(function(){return null;}); }))
+      .then(function(v){ return v[0]?{run:v[0],open:v[1]===true,since:v[2]}:null; });
+  }
+  function fmtDate(ms){ if(!ms) return ""; var d=new Date(ms); return p(d.getDate())+"."+p(d.getMonth()+1)+"."+d.getFullYear()+", "+p(d.getHours())+":"+p(d.getMinutes()); }
+
+  /* one card per case: session control on top, progress below */
+  function skeleton(){
+    $("out").innerHTML=CASES.map(function(c){
+      return '<section class="card" id="card-'+c.id+'"><div class="chap">'+c.chap+'</div><h2>'+esc(c.title)+'</h2>'+
+        '<p class="link">Link for students: <a href="'+c.id+'/">'+location.href.replace(/dashboard\.html.*$/,"")+c.id+'/</a></p>'+
+        '<div class="status none" id="st-'+c.id+'">Loading …</div>'+
+        '<div class="ctl"><div><label for="nm-'+c.id+'">New session name</label><input id="nm-'+c.id+'" size="16" value="'+today()+'"></div>'+
+        '<button class="btn" id="op-'+c.id+'">Open new session</button><button class="btn ghost" id="tg-'+c.id+'" hidden></button></div>'+
+        '<p class="msg" id="msg-'+c.id+'"></p>'+
+        '<div class="view">Showing progress of session <select id="sel-'+c.id+'"></select></div>'+
+        '<div id="prog-'+c.id+'"></div></section>';
+    }).join("");
+    CASES.forEach(function(c){
+      $("op-"+c.id).onclick=function(){ var n=clean($("nm-"+c.id).value); if(!n){ msg(c,"Enter a session name (letters, digits, - and _).",true); return; } write(c,n,true,true); };
+      $("tg-"+c.id).onclick=function(){ if(c.ctrl) write(c,c.ctrl.run,!c.ctrl.open,false); };
+      $("sel-"+c.id).onchange=function(){ c.view=$("sel-"+c.id).value; c.pinned=true; refresh(); };
+    });
+  }
+  function msg(c,t,err){ var m=$("msg-"+c.id); m.textContent=t||""; m.className="msg"+(err?" err":""); }
+  function write(c,run,open,isNew){
+    var key=$("key").value;
+    if(!key){ msg(c,"Enter the instructor key at the top of the page first.",true); return; }
+    var body={run:run,open:open,since:isNew||!c.ctrl?{".sv":"timestamp"}:(c.ctrl.since||{".sv":"timestamp"}),key:key};
+    fetch(BASE+"/control/"+c.id+".json",{method:"PUT",body:JSON.stringify(body)}).then(function(r){
+      if(r.status===401||r.status===403) throw new Error("The database refused the change. Check the instructor key and the database rules.");
+      if(!r.ok) throw new Error("HTTP "+r.status);
+      msg(c,open?(isNew?"Session “"+run+"” is open. Students who open the case now join it.":"Session “"+run+"” is open again."):"Session “"+run+"” is closed. Progress is kept; nothing new is counted.");
+      c.pinned=false; refresh();
+    }).catch(function(e){ msg(c,e.message,true); });
+  }
+  function bars(c,data){
     var n=c.tasks.length, sessions=Object.keys(data||{}), started=sessions.length, cnt=[], i;
     for(i=1;i<=n;i++) cnt.push(sessions.filter(function(s){return data[s]["s"+i]!=null;}).length);
-    var h='<section class="card"><div class="chap">'+c.chap+'</div><h2>'+c.title+'</h2>'+
-      '<p class="link">Link for students: <a href="'+u+'">'+u+'</a></p>'+
-      '<div class="big"><div><b>'+started+'</b><span>teams started</span></div><div><b>'+(cnt[n-1]||0)+'</b><span>teams finished</span></div></div>';
+    var h='<div class="big"><div><b>'+started+'</b><span>teams started</span></div><div><b>'+(cnt[n-1]||0)+'</b><span>teams finished</span></div></div>';
     c.tasks.forEach(function(t,k){
       var pct=started?Math.round(cnt[k]/started*100):0;
-      h+='<div class="bar"><div class="t">'+(k+1)+'. '+t+'</div><div class="rail"><div class="fill" style="width:'+pct+'%"></div></div><div class="n">'+cnt[k]+' ('+pct+'%)</div></div>';
+      h+='<div class="bar"><div class="t">'+(k+1)+'. '+esc(t)+'</div><div class="rail"><div class="fill" style="width:'+pct+'%"></div></div><div class="n">'+cnt[k]+' ('+pct+'%)</div></div>';
     });
     if(!started) h+='<p class="idle">No team has started in this session yet.</p>';
-    return h+'</section>';
+    return h;
   }
-  function tick(){
-    if(!cfg.firebaseUrl){
-      $("out").innerHTML='<p class="note"><strong>Live overview is not set up yet.</strong> Enter the URL of your Firebase Realtime Database in <code>config.js</code>. The README explains the steps.</p>';
-      return;
-    }
-    var base=cfg.firebaseUrl.replace(/\/+$/,""), run=runCode();
-    Promise.all(CASES.map(function(c){
-      return fetch(base+"/progress/"+c.id+"/"+run+".json",{cache:"no-store"}).then(function(r){ if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); });
-    })).then(function(all){
-      $("out").innerHTML=CASES.map(function(c,i){return card(c,all[i]);}).join("");
-      $("stamp").textContent="Updated "+new Date().toLocaleTimeString()+". Refreshes every 5 seconds.";
-    }).catch(function(e){ $("stamp").textContent="Could not read the database ("+e.message+"). Check the URL in config.js and the database rules."; });
+  function refreshCase(c){
+    return Promise.all([getControl(c), getJSON("/progress/"+c.id).catch(function(){return null;})]).then(function(r){
+      var ctrl=r[0], all=r[1]||{}; c.ctrl=ctrl;
+      if(!r[1]) return getJSON("/progress/"+c.id+"/"+(ctrl?ctrl.run:today())).catch(function(){return null;}).then(function(d){ all={}; all[ctrl?ctrl.run:today()]=d||{}; show(c,ctrl,all); });
+      show(c,ctrl,all);
+    });
   }
-  function start(){ clearInterval(timer); tick(); timer=setInterval(tick,5000); }
-  $("run").onchange=start;
-  loadCases(0,start);
+  function show(c,ctrl,all){
+      var st=$("st-"+c.id), tg=$("tg-"+c.id);
+      if(ctrl&&ctrl.open){ st.className="status open"; st.innerHTML='Session <b>'+esc(ctrl.run)+'</b> is open'+(ctrl.since?' (since '+fmtDate(ctrl.since)+')':'')+'. New progress is counted here.'; tg.hidden=false; tg.textContent="Close session"; }
+      else if(ctrl){ st.className="status closed"; st.innerHTML='Session <b>'+esc(ctrl.run)+'</b> is closed. Students can still work on the case, but nothing is counted.'; tg.hidden=false; tg.textContent="Reopen session"; }
+      else { st.className="status none"; st.innerHTML='No session opened yet. Progress is counted per day (today: <b>'+today()+'</b>).'; tg.hidden=true; }
+      var runs=Object.keys(all);
+      var current=ctrl?ctrl.run:today();
+      if(runs.indexOf(current)<0) runs.push(current);
+      runs.sort().reverse();
+      if(!c.pinned||runs.indexOf(c.view)<0) c.view=current;
+      var sel=$("sel-"+c.id);
+      sel.innerHTML=runs.map(function(r){ var n=Object.keys(all[r]||{}).length; return '<option value="'+esc(r)+'"'+(r===c.view?' selected':'')+'>'+esc(r)+(r===current?(ctrl&&!ctrl.open?' (closed)':' (current)'):'')+' – '+n+(n===1?' team':' teams')+'</option>'; }).join("");
+      $("prog-"+c.id).innerHTML=bars(c,all[c.view]);
+  }
+  function refresh(){
+    if(!BASE){ $("out").innerHTML='<p class="note"><strong>Live overview is not set up yet.</strong> Enter the URL of your Firebase Realtime Database in <code>config.js</code>.</p>'; return; }
+    Promise.all(CASES.map(refreshCase)).then(function(){ $("stamp").textContent="Updated "+new Date().toLocaleTimeString()+". Refreshes every 5 seconds."; })
+      .catch(function(e){ $("stamp").textContent="Could not read the database ("+e.message+")."; });
+  }
+  loadCases(0,function(){ skeleton(); refresh(); timer=setInterval(refresh,5000); });
 })();
 </script>
 </body>

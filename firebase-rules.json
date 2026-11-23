@@ -2,14 +2,38 @@
   "rules": {
     "progress": {
       "$case": {
+        ".read": true,
         "$run": {
-          ".read": true,
           "$session": {
             "$step": {
               ".write": "!data.exists()",
               ".validate": "newData.isNumber() && $case.length <= 12 && $run.length <= 20 && $session.length <= 40 && $step.matches(/^s[0-9]$/)"
             }
           }
+        }
+      }
+    },
+    "control": {
+      "$case": {
+        ".write": "newData.child('key').val() === root.child('secret').child('key').val()",
+        ".validate": "newData.hasChildren(['run', 'open', 'since', 'key']) && $case.length <= 12",
+        "run": {
+          ".read": true,
+          ".validate": "newData.isString() && newData.val().matches(/^[A-Za-z0-9_-]{1,20}$/)"
+        },
+        "open": {
+          ".read": true,
+          ".validate": "newData.isBoolean()"
+        },
+        "since": {
+          ".read": true,
+          ".validate": "newData.isNumber()"
+        },
+        "key": {
+          ".validate": "newData.isString()"
+        },
+        "$other": {
+          ".validate": false
         }
       }
     }

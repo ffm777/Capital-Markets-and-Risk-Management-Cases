@@ -46,6 +46,24 @@ Die Regeln erlauben jedem das Lesen dieser Zählwerte und das einmalige Schreibe
 - Nach drei Fehlversuchen erscheint "Show the approach", nach sechs "Show the solution".
   Eine so aufgedeckte Teilaufgabe zählt in der Übersicht als gelöst.
 
+## Sessions öffnen und schließen
+
+In der Dozentenansicht hat jede Fallstudie eine eigene Session-Steuerung:
+
+- **Open new session:** Ab jetzt zählt der Fortschritt unter diesem Namen, auch über mehrere Vorlesungstermine hinweg. Studenten, die die Fallstudie öffnen, treten automatisch dieser Session bei. Eine neue Session setzt den Stand der Studenten zurück.
+- **Close session:** Die Fallstudie funktioniert weiter (z. B. zum Üben zu Hause), aber es wird nichts mehr gezählt. Der erreichte Stand bleibt in Datenbank und Browser erhalten.
+- **Reopen session:** Die Session läuft weiter. Studenten machen am selben Gerät dort weiter, wo sie waren; zwischenzeitlich gelöste Aufgaben werden nachgemeldet.
+- Über die Auswahlliste lassen sich auch frühere Sessions ansehen.
+- Wurde noch nie eine Session geöffnet, zählt die Seite wie bisher pro Tag.
+
+Zum Öffnen und Schließen braucht die Dozentenansicht den **Instructor key**. Einrichtung (einmalig, Firebase-Konsole → Realtime Database):
+
+1. Reiter "Daten": an der obersten Ebene einen Eintrag `secret` mit dem Unterpunkt `key` anlegen und dort ein selbst gewähltes Passwort als Text eintragen.
+2. Reiter "Regeln": den Inhalt von `firebase-rules.json` einfügen und veröffentlichen.
+3. In der Dozentenansicht dasselbe Passwort oben als Instructor key eingeben (es wird im Browser gemerkt).
+
+Der Schlüssel ist von außen nicht lesbar; ohne ihn kann niemand Sessions öffnen oder schließen.
+
 ## Zahlen ändern
 
 Die Lösungen stehen in `ch3/case-data.js` Base64-kodiert, damit sie im Quelltext nicht auf einen Blick lesbar sind.
