@@ -56,13 +56,13 @@ In der Dozentenansicht hat jede Fallstudie eine eigene Session-Steuerung:
 - Über die Auswahlliste lassen sich auch frühere Sessions ansehen.
 - Wurde noch nie eine Session geöffnet, zählt die Seite wie bisher pro Tag.
 
-Zum Öffnen und Schließen braucht die Dozentenansicht den **Instructor key**. Einrichtung (einmalig, Firebase-Konsole → Realtime Database):
+Zum Öffnen und Schließen braucht die Dozentenansicht den **Instructor key**. Einrichtung (einmalig, Firebase-Konsole → Realtime Database → Reiter "Regeln"):
 
-1. Reiter "Daten": an der obersten Ebene einen Eintrag `secret` mit dem Unterpunkt `key` anlegen und dort ein selbst gewähltes Passwort als Text eintragen.
-2. Reiter "Regeln": den Inhalt von `firebase-rules.json` einfügen und veröffentlichen.
+1. Den gesamten Text durch den Inhalt von `firebase-rules.json` ersetzen.
+2. Darin `HIER-DEIN-PASSWORT` durch ein selbst gewähltes Passwort ersetzen (die Hochkommas bleiben stehen) und veröffentlichen.
 3. In der Dozentenansicht dasselbe Passwort oben als Instructor key eingeben (es wird im Browser gemerkt).
 
-Der Schlüssel ist von außen nicht lesbar; ohne ihn kann niemand Sessions öffnen oder schließen.
+Die Regeln sind nur in der Firebase-Konsole sichtbar, das Passwort ist also von außen nicht lesbar; ohne ihn kann niemand Sessions öffnen oder schließen.
 
 ## Zahlen ändern
 

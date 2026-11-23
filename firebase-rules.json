@@ -15,7 +15,7 @@
     },
     "control": {
       "$case": {
-        ".write": "newData.child('key').val() === root.child('secret').child('key').val()",
+        ".write": "newData.child('key').val() === 'HIER-DEIN-PASSWORT'",
         ".validate": "newData.hasChildren(['run', 'open', 'since', 'key']) && $case.length <= 12",
         "run": {
           ".read": true,
